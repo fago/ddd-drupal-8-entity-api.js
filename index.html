@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Drupal 8 Entity API</title>
+
+		<meta name="author" content="Wolfgang Ziegler // fago">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/ddd.css" id="theme2">
+		<link rel="stylesheet" href="css/theme/drunomics.css" id="theme">
+
+    <style>
+
+      .code-center code {
+        text-align: center;
+      }
+
+      .code-large code {
+        font-size: 150%;
+        line-height: 130% ;
+      }
+    </style>
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+<!-- Any section element inside of this container is displayed as a slide -->
+<div class="slides">
+
+  <section class="ddd-intro" data-background="images/ddd-background.jpg" style=""">
+    <h1>Drupal 8 Entity API</h1>
+    <h2>Wolfgang Ziegler // fago - @the_real_fago</h2>
+  </section>
+
+
+<section>
+  <section>
+
+    <h2>About me</h2>
+    <p>
+
+    <ul>
+      <li>Wolfgang Ziegler</li>
+      <li>@the_real_fago auf Twitter</li>
+      <li>drupal.org/u/fago</li>
+      <li>CEO of drunomics</li>
+    </ul>
+    </p>
+
+    <div>
+      <img style="border: 0px" src="images/logo_drunomics.png" width="400px">
+    </div>
+
+    <aside class="notes">
+      Oh hey, these are some notes. They'll be hidden in your presentation, but you can see them if you open the speaker notes window (hit 's' on your keyboard).
+    </aside>
+
+
+  </section>
+  <section>
+    <h2>Contributions</h2>
+    <ul>
+      <li>Diverse modules since ca. 2006</li>
+      <ul>
+        <li>Rules</li>
+        <li>Entity API</li>
+        <li>Field-collection</li>
+        <li>Profile2</li>
+      </ul>
+      </li>
+      <li>Drupal core subsystem maintainer</li>
+      <ul>
+        <li>Form system</li>
+        <li>Entity API</li>
+      </ul>
+      <li>Drupal 8 Entity API "Initiative"</li>
+    </ul>
+  </section>
+</section>
+<section>
+  <section data-markdown>
+
+  <script type="text/template">
+  ##  Entities in Drupal 7
+
+-  Side-effect of Field API being decoupled from nodes
+-  Introduced very late in the cycle
+-  Vastly unfinished
+  </script>
+   <!--data-background-image="images/building_construction.jpg" -->
+    <div class="photo-credit">
+     Photo source:&nbsp;Metro Centric, flickr.com/people/16782093@N03
+    </div>
+  </section>
+
+<section data-markdown>
+<script type="text/template">
+## Entity module to the rescue!
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Drupal 8: Let's complete it!
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Put Entity module in core?
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Goals
+- Class based objects
+- Unification of fields and properties
+- Metadata about fields / properties
+- Validation API
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## What's an entity?
+- Content <!-- .element: class="fragment" data-fragment-index="1" -->
+- Data <!-- .element: class="fragment" data-fragment-index="2" -->
+
+</script>
+</section>
+<section data-markdown>
+  <script type="text/template">
+    ## All the things
+  </script>
+</section>
+
+<section>
+<h2> Entities<br/>
+=<br/>
+Content<br/>
++<br/>
+Configuration
+</h2>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Interfaces
+    ContentEntityInterface extends EntityInterface
+    ConfigEntityInterface extends EntityInterface
+<!-- .element: class="code-center" -->
+</script>
+</section>
+
+
+</section>
+<section>
+<section data-markdown>
+<script type="text/template">
+##   Working with entities
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+# Entity Manager
+    $manager = \Drupal::entityManager();
+    $entity = $manager
+      ->getStorageController('comment')
+      ->load($id);
+    $entity->entityType();
+    $entity->label();
+    $entity->id();
+
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Entity objects
+    echo $entity->subject->value;
+    $tag = $entity
+      ->field_tags[2]
+      ->entity
+      ->name->value;
+
+    $entity->hasField($field_name);
+    $entity = $field_item->getEntity();
+
+    $entity->title->value = 'new Title';
+    $entity->save();
+</script>
+</section>
+
+<section data-markdown>
+  <script type="text/template">
+    ## Config entities?
+  </script>
+</section>
+<section data-markdown class="">
+  <script type="text/template">
+    ## Properties vs. Fields
+
+    is_string($view->name) == TRUE
+    is_string($node->title) == FALSE
+<!-- .element: class="code-center code-large" -->
+  </script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Methods!
+    if ($node->isPromoted()) {
+      echo $node->getTitle();
+    }
+    elseif ($node->isPublished()) {
+      $node->setTitle($node->getAuthor()->getUsername());
+    }
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Translation
+    echo $entity
+      ->getTranslation('de')
+      ->title->value;
+
+    $translation = $entity->getTranslation('de');
+    $translation->language() == 'de';
+    $translation->title->value = 'German title';
+
+    $translation = $manager->getTranslationFromContext($entity);
+    echo $translation->label();
+
+    $entity = $translation->getUntranslated();
+<!-- .element: class="fragment" data-fragment-index="1" -->
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Iterating
+
+    foreach ($entity as $field_name => $field_items) {
+      foreach ($field_items as $item) {
+        echo $item->value;
+      }
+    }
+</script>
+</section>
+
+<section>
+<h2>It's all fields!
+</h2>
+</section>
+  </section>
+<section>
+<section data-markdown>
+<script type="text/template">
+## Fields
+An overview
+</script>
+</section>
+
+<section>
+<h2>Entity fields<br>
+=</br>
+Base fields</br>
+
++</br>
+Bundle fields
+</h2>
+</section>
+<section data-markdown>
+<script type="text/template">
+## Configurable fields
+  - Are always bundle fields
+  - Backed by configuration
+  - Exposed via a hook
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Many improvements
+ - New field types: Entity refernce, Date, Link, E-Mail<!-- .element: class="fragment" data-fragment-index="1" -->
+ - Configuration management <!-- .element: class="fragment" data-fragment-index="2" -->
+ - Decoupled: Storage, Widgets, Formatters <!-- .element: class="fragment" data-fragment-index="3" -->
+ - Widgets & Formatters for base fields<!-- .element: class="fragment" data-fragment-index="4" -->
+ - Optional configurability<!-- .element: class="fragment" data-fragment-index="5" -->
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+  ## Non-configurable field types
+
+  - UUID field
+  - Language field
+  - Path field
+</script>
+</section>
+<section data-markdown>
+<script type="text/template">
+## Field storage
+- Now part of Entity storage
+- Fields are per entity type
+</script>
+</section>
+</section>
+<section>
+
+<section data-markdown>
+<script type="text/template">
+  ## Entity storage
+
+  - Storage handler is in charge<!-- .element: class="fragment" data-fragment-index="1" -->
+  - DB schema is generated based on fields<!-- .element: class="fragment" data-fragment-index="2" -->
+  - Schema handler takes care of changes <!-- .element: class="fragment" data-fragment-index="3" -->
+  - Table mapping API for SQL<!-- .element: class="fragment" data-fragment-index="4" -->
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+  ## Entity storage overview
+
+  - Base fields live in shared tables (if not multiple)<!-- .element: class="fragment" data-fragment-index="1" -->
+  - Fields are optional revisionable and translatable<!-- .element: class="fragment" data-fragment-index="2" -->
+  - Entity types are optional revisionable and translatable<!-- .element: class="fragment" data-fragment-index="3" -->
+  - Apply schema changes when running update.php<!-- .element: class="fragment" data-fragment-index="4" -->
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## More details
+
+https://drupalwatchdog.com/blog/2015/3/entity-storage-drupal-8-way
+
+by Francesco Placella // plach
+</script>
+</section>
+</section>
+
+<section>
+<section data-markdown>
+<script type="text/template">
+## Entity Query
+</script>
+</section>
+<section data-markdown>
+<script type="text/template">
+Do not directly
+
+query your database
+
+outside of
+
+your storage controller
+
+(or entity query service)
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Why?
+
+- Translation
+- Schema changes
+- Other storage backends
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Entity query overview
+- No more propertyCondition(), fieldCondition()
+- Works independently / together with the storage
+- Filter by language
+- Aggregation support, e.g. count
+- Relationships
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Entity Query examples
+
+    $ids = \Drupal::entityQuery('block')
+      ->condition('plugin', 'aggregator_feed_block')
+      ->condition('settings.feed', array_keys($entities))
+      ->execute();
+      if ($ids) {
+      ...
+
+    $results = \Drupal::entityQuery('entity_test')
+      ->condition("user_id.entity.name", $this->accounts[0]->getUsername(), '<>')
+      ->execute();
+</script>
+</section>
+
+
+
+</section>
+<section>
+<!-- todo: img -->
+<section data-markdown>
+<script type="text/template">
+## Providing a new entity type
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Entity class
+  - Works like plugins
+  - `src/Entity/Node.php`
+  - Annotation
+
+</script>
+</section>
+<section data-markdown>
+<script type="text/template">
+## Comment class
+     /**
+      * Defines the comment entity class.
+      *
+      * @ContentEntityType(
+      *   id = "comment",
+      *   label = @Translation("Comment"),
+      *   handlers = {
+      *     "storage" = "Drupal\comment\CommentStorage",
+      *     "access" = "Drupal\comment\CommentAccessControlHandler",
+      *     "view_builder" = "Drupal\comment\CommentViewBuilder",
+      *     "views_data" = "Drupal\comment\CommentViewsData",
+      *     "form" = {
+      *       "default" = "Drupal\comment\CommentForm",
+      *       "delete" = "Drupal\comment\Form\DeleteForm"
+      *     },
+      *   .....
+      class Comment extends ContentEntityBase implements CommentInterface {
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Comment fields
+
+    class Comment extends ContentEntityBase implements CommentInterface {
+
+      public static function baseFieldDefinitions($entity_type) {
+        $fields['cid'] = FieldDefinition::create('integer')
+          ->setLabel(t('Comment ID'))
+          ->setReadOnly(TRUE);
+
+        $fields['uuid'] = FieldDefinition::create('uuid')
+          ->setLabel(t('UUID'));
+
+        $fields['pid'] = FieldDefinition::create('entity_reference')
+          ->setLabel(t('Parent ID'))
+          ->setDescription(t('The parent comment ID if this is a reply to a comment.'))
+          ->setFieldSetting('target_type', 'comment');
+
+        return $fields;
+
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## CommentStorage
+
+    class CommentStorage extends SqlContentEntityStorage implements CommentStorageInterface {
+
+      public function getChildCids(array $comments) {
+        return $this->database->select('comment_field_data', 'c')
+          ->fields('c', array('cid'))
+          ->condition('pid', array_keys($comments), 'IN')
+          ->condition('default_langcode', 1)
+          ->execute()
+          ->fetchCol();
+      }
+
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Storage in-dependent logic
+
+    class Comment extends ContentEntityBase implements CommentInterface {
+
+      public function postSave(EntityStorageInterface $storage, $update = TRUE) {
+        parent::postSave($storage, $update);
+
+        $this->releaseThreadLock();
+        // Update the {comment_entity_statistics} table prior to executing the hook.
+        \Drupal::service('comment.statistics')->update($this);
+      }
+
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## ViewBuilder
+
+    class CommentViewBuilder extends EntityViewBuilder {
+
+      protected function getBuildDefaults(EntityInterface $entity, $view_mode, $langcode) {
+        $build = parent::getBuildDefaults($entity, $view_mode, $langcode);
+        // ...
+        $build['#cache']['tags'] = $cache_tags;
+        return $build;
+      }
+
+<!-- space -->
+
+    $entity_manager->getViewBuilder('comment')->view($comment);
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Forms
+
+    class CommentForm extends ContentEntityForm {
+
+      public function form(array $form, FormStateInterface $form_state) {
+
+        $form['author']['name'] = array(
+          '#type' => 'textfield',
+          '#title' => $this->t('Your name'),
+        );
+
+        return parent::form($form, $form_state, $comment);
+
+<!-- space -->
+
+    $entity_manager->getFormObject('comment', 'default');
+<!-- .element: class="fragment" data-fragment-index="1" -->
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Form operations
+
+    class DeleteForm extends ContentEntityDeleteForm {
+
+      public function getDescription() {
+        return $this->t('Any replies to this comment will be lost. This action cannot be undone.');
+      }
+</script>
+</section>
+<section data-markdown>
+<script type="text/template">
+## Access
+
+    class CommentAccessControlHandler extends EntityAccessControlHandler {
+
+      protected function checkAccess(EntityInterface $entity, $operation, $langcode, AccountInterface $account) {
+
+        switch ($operation) {
+          case 'view':
+            return AccessResult::allowedIf(
+              $account->hasPermission('access comments') && ..
+            );
+          }
+        }
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Entity lists
+
+    class NodeTypeListBuilder extends ConfigEntityListBuilder {
+      public function buildRow(EntityInterface $entity) {
+        $row['title'] = array(
+          'data' => $this->getLabel($entity),
+          'class' => array('menu-label'),
+        );
+        $row['description'] = Xss::filterAdmin($entity->getDescription());
+        return $row + parent::buildRow($entity);
+      }
+
+
+<!-- space -->
+
+    $entityManager->getListBuilder('node_type')->render();
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+
+
+</script>
+</section>
+<section data-markdown>
+<script type="text/template">
+## There is a pattern!
+
+<!-- todo: image -->
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Handlers
+
+provide re-usable functionality
+<!-- .element: class="fragment" data-fragment-index="1" -->
+
+based upon
+<!-- .element: class="fragment" data-fragment-index="2" -->
+
+a well-defined interface
+<!-- .element: class="fragment" data-fragment-index="2" -->
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Handlers
+
+allow you to easily
+
+customize certain aspects of
+
+your entity type
+</script>
+</section>
+
+
+<section data-markdown>
+<script type="text/template">
+## Handlers
+
+can be provided by contrib
+
+to allow for easy
+
+per-entity type customization
+</script>
+</section>
+</section>
+<section>
+<section data-markdown>
+<script type="text/template">
+## Entity Validation
+
+- decoupled from form validation -> REST
+<!-- .element: class="fragment" data-fragment-index="1" -->
+- makes use of Symfony Validator
+<!-- .element: class="fragment" data-fragment-index="2" -->
+- based upon Constraint plugins
+<!-- .element: class="fragment" data-fragment-index="3" -->
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Defining constraints
+  - Field definitions <!-- .element: class="fragment" data-fragment-index="1" -->
+    - Property constraints<!-- .element: class="fragment" data-fragment-index="1" -->
+    - Field level constraints<!-- .element: class="fragment" data-fragment-index="1" -->
+    - Field item constraitns<!-- .element: class="fragment" data-fragment-index="1" -->
+  - Entity level
+<!-- .element: class="fragment" data-fragment-index="2" -->
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Defining a field constraint
+    $fields['mail'] = BaseFieldDefinition::create('email')
+      ->setLabel(t('Email'))
+      ->setDescription(t('The email of this user.'))
+      ->addConstraint('UserMailUnique');
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Field type defaults
+     /**
+      * Plugin implementation of the 'link' field type.
+      *
+      * @FieldType(
+      *   id = "link",
+      *   label = @Translation("Link"),
+      *   description = @Translation("Stores a URL string, optional varchar link text, and optional blob of attributes to assemble a link."),
+      *   default_widget = "link_default",
+      *   default_formatter = "link",
+      *   constraints = { "LinkNotExistingInternal" = {}}
+      * )
+      */
+      class LinkItem extends FieldItemBase implements LinkItemInterface {
+  </script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Defaults on properties
+
+    class ListStringItem extends ListItemBase {
+
+      public static function propertyDefinitions(FieldStorageDefinitionInterface $field_definition) {
+
+        $properties['value'] = DataDefinition::create('string')
+          ->setLabel(t('Text value'))
+          ->addConstraint('Length', array('max' => 255))
+          ->setRequired(TRUE);
+
+        return $properties;
+      }
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Entity level constraints
+  - Defaults in the type definition
+  - Added via hook_entity_type_build()
+  - Altered via hook_entity_type_alter()
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Entity level constraints
+     /**
+      * Defines the comment entity class.
+      *
+      * @ContentEntityType(
+      *   id = "comment",
+      *   label = @Translation("Comment"),
+      *   bundle_label = @Translation("Content type"),
+      *   handlers = {
+      *     "storage" = "Drupal\comment\CommentStorage",
+      *     ....
+      *   },
+      *   constraints = {
+      *     "EntityChanged" = {}
+      *   }
+      * )
+      */
+      class Comment extends ContentEntityBase implements CommentInterface {
+
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Validate!
+
+      $violations = $entity->validate();
+      $violations->count() == 0;
+
+      $violation = $violations[0];
+      echo $violation->getMessage();
+
+      $violation->getRoot();
+      $violation->getPropertyPath() == 'field_test_text.0.format'
+      $violation->getInvalidValue();
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Constraint plugins
+     /**
+      * Range constraint.
+      *
+      * @Plugin(
+      *   id = "Range",
+      *   label = @Translation("Range", context = "Validation")
+      * )
+      */
+      class RangeConstraint extends Range {
+
+        public $minMessage = 'This value should be %limit or more.';
+        public $maxMessage = 'This value should be %limit or less.';
+
+        public function validatedBy() {
+          return $class;
+        }
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Constraint plugins
+
+    class RangeValidator extends ConstraintValidator {
+
+      public function validate($value, Constraint $constraint) {
+
+        if ($value < $constraint->limit) {
+          $this->context->addViolation($constraint->minMessage);
+        }
+        // ...
+      }
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Handling violations
+  - Widgets map violations to form elements
+  - Filtered based on visibility
+</script>
+</section>
+
+</section>
+<section>
+<section data-markdown>
+<script type="text/template">
+## Config entities
+
+     /**
+      * Defines the Node type configuration entity.
+      *
+      * @ConfigEntityType(
+      *   id = "node_type",
+      *   label = @Translation("Content type"),
+      *   handlers = {
+      *     "access" = "Drupal\node\NodeTypeAccessControlHandler",
+      *     "form" = {
+      *       "edit" = "Drupal\node\NodeTypeForm",
+      *       ...
+      *   admin_permission = "administer content types",
+      *   config_prefix = "type",
+      * ...
+      */
+      class NodeType extends ConfigEntityBundleBase implements NodeTypeInterface {
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Entity properties
+
+    class NodeType extends ConfigEntityBundleBase implements NodeTypeInterface {
+
+      public $type;
+
+      public $uuid;
+
+      public $name;
+
+      public $help;
+
+      public $has_title = TRUE;
+
+      public $title_label = 'Title';
+
+      //.....
+
+<!-- space -->
+
+    $node_type->toArray();
+<!-- .element: class="fragment" data-fragment-index="1" -->
+</script>
+</section>
+
+
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Questions?
+</script>
+</section>
+
+<section data-markdown>
+<script type="text/template">
+## Thank you!
+</script>
+</section>
+
+            </div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          // Always enable hightlight.js.
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return true }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
